@@ -4,12 +4,16 @@
 #include <string>
 #include <vector>
 
+//This file is designed to access the visibility parameters from the
+//optical libraries, which are needed to calculate the number of photoelectrons
+//incident on each PMT.
+
 class LibraryAccess{
 
   public:
     void LoadLibraryFromFile(std::string libraryfile, bool reflected, bool reflT0);
     const float* GetReflT0(size_t Voxel, int no_pmt);
-    const float* GetReflCounts(size_t Voxel, int no_pmt);
+    const float* GetReflCounts(size_t Voxel, int no_pmt, bool is_reflT0);
     const float* GetCounts(size_t Voxel, int no_pmt);
     const float* GetLibraryEntries(int VoxID, bool wantReflected, int no_pmt);
     std::vector<int> GetVoxelCoords(int id, double position[3]);
