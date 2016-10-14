@@ -154,7 +154,7 @@ std::vector<double> LibraryAccess::PhotonLibraryAnalyzer(double _energy, const i
 
   //Applying quantum efficiency right after calculation reduces total number
   //of photons working with initially
-	int Nphotons_created = utility::poisson(pre_Nphotons_created, gRandom->Uniform(1.), energy) * quantum_efficiency;
+	int Nphotons_created = utility::poisson(pre_Nphotons_created, gRandom->Uniform(1.), energy);
 
   //Find position of event
 	double position[3];
@@ -180,10 +180,22 @@ std::vector<double> LibraryAccess::PhotonLibraryAnalyzer(double _energy, const i
 	int int_hits_vuv = hits_vuv;
 	int int_hits_vis = hits_vis;
 
+	int total_hits_vuv = 0;
+	int total_hits_vis = 0;
+
+	for(int i = 0; i < int_hits_vuv; i++)
+	{
+		if(gRandom->Uniform() <= quantum_efficiency){total_hits_vuv++;}
+	}
+	for(int j = 0; j < int_hits_vis; j++)
+	{
+		if(gRandom->Uniform() <= quantum_efficiency){total_hits_vis++;}
+	}
+
   //Push information back into a vector to readout in:
   //libraryanalyze_light_histo
-	pmt_hits.push_back(int_hits_vuv);
-	pmt_hits.push_back(int_hits_vis);
+	pmt_hits.push_back(total_hits_vuv);
+	pmt_hits.push_back(total_hits_vis);
 	pmt_hits.push_back(position[0]);//x position of voxel
 	pmt_hits.push_back(position[1]);//y
 	pmt_hits.push_back(position[2]);//z
