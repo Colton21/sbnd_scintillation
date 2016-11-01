@@ -157,26 +157,26 @@ std::vector<double> utility::GetVUVTime(double distance, int number_photons) {
 	const double d_break = 500.;
 	const double d_max = 750.;
 	// Defining the function for the different parameters:
-	TF1 *fparslogNorm = new TF1("fparslogNorm","pol7",0,d_break);
-	fparslogNorm->SetParameters(landauNormpars);
-	TF1 *fparsMPV = new TF1("fparsMPV","pol4",0,d_break);
-	fparsMPV->SetParameters(landauMPVpars);
-	TF1 *fparsWidth = new TF1("fparsWidth","pol3",0,d_break);
-	fparsWidth->SetParameters(landauWidthpars);
-	TF1 *fparsCte = new TF1("fparsCte","pol6",0,d_break);
-	fparsCte->SetParameters(expoCtepars);
-	TF1 *fparsSlope = new TF1("fparsSlope","pol7",0,d_break);
-	fparsSlope->SetParameters(expoSlopepars);
+	TF1 fparslogNorm ("fparslogNorm","pol7",0,d_break);
+	fparslogNorm.SetParameters(landauNormpars);
+	TF1 fparsMPV ("fparsMPV","pol4",0,d_break);
+	fparsMPV.SetParameters(landauMPVpars);
+	TF1 fparsWidth ("fparsWidth","pol3",0,d_break);
+	fparsWidth.SetParameters(landauWidthpars);
+	TF1 fparsCte ("fparsCte","pol6",0,d_break);
+	fparsCte.SetParameters(expoCtepars);
+	TF1 fparsSlope ("fparsSlope","pol7",0,d_break);
+	fparsSlope.SetParameters(expoSlopepars);
 	// At long distances we extrapolate the behaviour of the parameters:
-	TF1 *fparslogNorm_far = new TF1("fparslogNorm_far","expo",d_break, d_max);
+	TF1 fparslogNorm_far ("fparslogNorm_far","expo",d_break, d_max);
 	double landauNormpars_far[2] = {2.23151, -0.00627503};
-	fparslogNorm_far->SetParameters(landauNormpars_far);
-	TF1 *fparsMPV_far = new TF1("fparsMPV_far","pol1",d_break, d_max);
+	fparslogNorm_far.SetParameters(landauNormpars_far);
+	TF1 fparsMPV_far ("fparsMPV_far","pol1",d_break, d_max);
 	double landauMPVpars_far[2] = {-3.04952, 0.128638};
-	fparsMPV_far->SetParameters(landauMPVpars_far);
-	TF1 *fparsCte_far = new TF1("fparsCte_far","expo",d_break-50., d_max);
+	fparsMPV_far.SetParameters(landauMPVpars_far);
+	TF1 fparsCte_far ("fparsCte_far","expo",d_break-50., d_max);
 	double expoCtepars_far[2] = {3.69578, -0.00989582};
-	fparsCte_far->SetParameters(expoCtepars_far);
+	fparsCte_far.SetParameters(expoCtepars_far);
 
 	if(distance < 10 || distance > d_max) {
 		//std::cout<<"WARNING: Parametrization of Direct Light not fully reliable"<<std::endl;
@@ -189,60 +189,60 @@ std::vector<double> utility::GetVUVTime(double distance, int number_photons) {
 	double t_direct = distance/vuv_vgroup;
 
 	// Defining the two functions (Landau + Exponential) describing the timing vs distance
-	double pars_landau[3]= {fparsMPV->Eval(distance), fparsWidth->Eval(distance),
-		                pow(10.,fparslogNorm->Eval(distance))};
+	double pars_landau[3]= {fparsMPV.Eval(distance), fparsWidth.Eval(distance),
+		                pow(10.,fparslogNorm.Eval(distance))};
 	if(distance > d_break) {
-		pars_landau[0]=fparsMPV_far->Eval(distance);
-		pars_landau[1]=fparsWidth->Eval(d_break);
-		pars_landau[2]=pow(10.,fparslogNorm_far->Eval(distance));
+		pars_landau[0]=fparsMPV_far.Eval(distance);
+		pars_landau[1]=fparsWidth.Eval(d_break);
+		pars_landau[2]=pow(10.,fparslogNorm_far.Eval(distance));
 	}
-	TF1 *flandau = new TF1("flandau","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
-	flandau->SetParameters(pars_landau);
+	TF1 flandau ("flandau","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
+	flandau.SetParameters(pars_landau);
 
-	double pars_expo[2] = {fparsCte->Eval(distance), fparsSlope->Eval(distance)};
+	double pars_expo[2] = {fparsCte.Eval(distance), fparsSlope.Eval(distance)};
 	if(distance > (d_break - 50.)) {
-		pars_expo[0] = fparsCte_far->Eval(distance);
-		pars_expo[1] = fparsSlope->Eval(d_break - 50.);
+		pars_expo[0] = fparsCte_far.Eval(distance);
+		pars_expo[1] = fparsSlope.Eval(d_break - 50.);
 	}
-	TF1 *fexpo = new TF1("fexpo","expo",0, signal_t_range/2);
-	fexpo->SetParameters(pars_expo);
+	TF1 fexpo ("fexpo","expo",0, signal_t_range/2);
+	fexpo.SetParameters(pars_expo);
 
 	//this is to find the intersection point between the two functions:
-	TF1 *fint = new TF1("fint",utility::finter_d,flandau->GetMaximumX(),3*t_direct,5);
+	TF1 fint ("fint",utility::finter_d,flandau.GetMaximumX(),3*t_direct,5);
 	double parsInt[5] = {pars_landau[0], pars_landau[1], pars_landau[2], pars_expo[0], pars_expo[1]};
-	fint->SetParameters(parsInt);
-	double t_int = fint->GetMinimumX();
-	double minVal = fint->Eval(t_int);
+	fint.SetParameters(parsInt);
+	double t_int = fint.GetMinimumX();
+	double minVal = fint.Eval(t_int);
 	//the functions must intersect!!!
 	//if(minVal>0.015)
 	//std::cout<<"WARNING: Parametrization of Direct Light discontinuous (landau + expo)!!!!!!"<<std::endl;
 
 
-	TF1 *fVUVTiming =  new TF1("fTiming",utility::LandauPlusExpoFinal,0,signal_t_range,6);
+	TF1 fVUVTiming ("fTiming",utility::LandauPlusExpoFinal,0,signal_t_range,6);
 	double parsfinal[6] = {t_int, pars_landau[0], pars_landau[1], pars_landau[2], pars_expo[0], pars_expo[1]};
-	fVUVTiming->SetParameters(parsfinal);
+	fVUVTiming.SetParameters(parsfinal);
 	// Set the number of points used to sample the function
 
 	int f_sampling = 1000;
 	if(distance < 50)
 		f_sampling *= 10;
-	fVUVTiming->SetNpx(f_sampling);
+	fVUVTiming.SetNpx(f_sampling);
 
 	for(int i=0; i<number_photons; i++)
-		arrival_time_distrb.push_back(fVUVTiming->GetRandom());
+		arrival_time_distrb.push_back(fVUVTiming.GetRandom());
 
 	//deleting ...
-
-	delete fparslogNorm;
-	delete fparsMPV;
-	delete fparsWidth;
-	delete fparsCte;
-	delete fparsSlope;
-	delete flandau;
-	delete fexpo;
-	delete fint;
-	delete fVUVTiming;
-
+/*
+        delete fparslogNorm;
+        delete fparsMPV;
+        delete fparsWidth;
+        delete fparsCte;
+        delete fparsSlope;
+        delete flandau;
+        delete fexpo;
+        delete fint;
+        delete fVUVTiming;
+ */
 	return arrival_time_distrb;
 }
 
@@ -273,16 +273,16 @@ std::vector<double> utility::GetVisibleTimeOnlyCathode(double t0, int number_pho
 	//range of t0s where the parametrization is valid [~8 - 55ns], then:
 	const double t0_max = 55.;
 	// Defining the function for the different parameters:
-	TF1 *fparslogNorm = new TF1("fparslogNorm","pol3",0,t0_max);
-	fparslogNorm->SetParameters(landauNormpars);
-	TF1 *fparsMPV = new TF1("fparsMPV","pol3",0,t0_max);
-	fparsMPV->SetParameters(landauMPVpars);
-	TF1 *fparsWidth = new TF1("fparsWidth","pol3",0,t0_max);
-	fparsWidth->SetParameters(landauWidthpars);
-	TF1 *fparsCte = new TF1("fparsCte","pol3",0,t0_max);
-	fparsCte->SetParameters(expoCtepars);
-	TF1 *fparsSlope = new TF1("fparsSlope","pol4",0,t0_max);
-	fparsSlope->SetParameters(expoSlopepars);
+	TF1 fparslogNorm ("fparslogNorm","pol3",0,t0_max);
+	fparslogNorm.SetParameters(landauNormpars);
+	TF1 fparsMPV ("fparsMPV","pol3",0,t0_max);
+	fparsMPV.SetParameters(landauMPVpars);
+	TF1 fparsWidth ("fparsWidth","pol3",0,t0_max);
+	fparsWidth.SetParameters(landauWidthpars);
+	TF1 fparsCte ("fparsCte","pol3",0,t0_max);
+	fparsCte.SetParameters(expoCtepars);
+	TF1 fparsSlope ("fparsSlope","pol4",0,t0_max);
+	fparsSlope.SetParameters(expoSlopepars);
 
 
 	if(t0 < 8 || t0 > t0_max) {
@@ -293,58 +293,58 @@ std::vector<double> utility::GetVisibleTimeOnlyCathode(double t0, int number_pho
 	//signals (remember this is transportation) no longer than 1us
 	const double signal_t_range = 1000.;
 
-	double pars_landau[3] = {fparsMPV->Eval(t0), fparsWidth->Eval(t0),
-		                 pow(10.,fparslogNorm->Eval(t0))};
-	double pars_expo[2] = {fparsCte->Eval(t0), fparsSlope->Eval(t0)};
+	double pars_landau[3] = {fparsMPV.Eval(t0), fparsWidth.Eval(t0),
+		                 pow(10.,fparslogNorm.Eval(t0))};
+	double pars_expo[2] = {fparsCte.Eval(t0), fparsSlope.Eval(t0)};
 	double t0_break_point = 42.;//ns after the parametrization must be corrected (lack of statistics!)
 	if(t0 > t0_break_point) {
 		pars_landau[0] = -0.798934 + 1.06216*t0;
-		pars_landau[1] = fparsWidth->Eval(t0_break_point);
-		pars_landau[2] = pow(10.,fparslogNorm->Eval(t0_break_point));
-		pars_expo[0] = fparsCte->Eval(t0_break_point);
-		pars_expo[1] = fparsSlope->Eval(t0_break_point);
+		pars_landau[1] = fparsWidth.Eval(t0_break_point);
+		pars_landau[2] = pow(10.,fparslogNorm.Eval(t0_break_point));
+		pars_expo[0] = fparsCte.Eval(t0_break_point);
+		pars_expo[1] = fparsSlope.Eval(t0_break_point);
 	}
 
 	// Defining the two functions (Landau + Exponential) describing the timing vs t0
-	TF1 *flandau = new TF1("flandau","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
-	flandau->SetParameters(pars_landau);
-	TF1 *fexpo = new TF1("fexpo","expo",0, signal_t_range/2);
-	fexpo->SetParameters(pars_expo);
+	TF1 flandau ("flandau","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
+	flandau.SetParameters(pars_landau);
+	TF1 fexpo ("fexpo","expo",0, signal_t_range/2);
+	fexpo.SetParameters(pars_expo);
 	//this is to find the intersection point between the two functions:
-	TF1 *fint = new TF1("fint",utility::finter_d,flandau->GetMaximumX(),2*t0,5);
+	TF1 fint ("fint",utility::finter_d,flandau.GetMaximumX(),2*t0,5);
 	double parsInt[5] = {pars_landau[0], pars_landau[1], pars_landau[2], pars_expo[0], pars_expo[1]};
-	fint->SetParameters(parsInt);
-	double t_int = fint->GetMinimumX();
-	double minVal = fint->Eval(t_int);
+	fint.SetParameters(parsInt);
+	double t_int = fint.GetMinimumX();
+	double minVal = fint.Eval(t_int);
 	//the functions must intersect!!!
 	//if(minVal>0.015)
 	//std::cout<<"WARNING: Parametrization of Direct Light discontinuous (landau + expo)!!!!!!"<<std::endl;
 
-	TF1 *fVisTiming =  new TF1("fTiming",utility::LandauPlusExpoFinal,0,signal_t_range,6);
+	TF1 fVisTiming ("fTiming",utility::LandauPlusExpoFinal,0,signal_t_range,6);
 	double parsfinal[6] = {t_int, pars_landau[0], pars_landau[1], pars_landau[2], pars_expo[0], pars_expo[1]};
-	fVisTiming->SetParameters(parsfinal);
+	fVisTiming.SetParameters(parsfinal);
 	// Set the number of points used to sample the function
 
 	int f_sampling = 1000;
 	if(t0 < 20)
 		f_sampling *= 10;
-	fVisTiming->SetNpx(f_sampling);
+	fVisTiming.SetNpx(f_sampling);
 
 	for(int i=0; i<number_photons; i++)
-		arrival_time_distrb.push_back(fVisTiming->GetRandom());
+		arrival_time_distrb.push_back(fVisTiming.GetRandom());
 
 	//deleting ...
-
-	delete fparslogNorm;
-	delete fparsMPV;
-	delete fparsWidth;
-	delete fparsCte;
-	delete fparsSlope;
-	delete flandau;
-	delete fexpo;
-	delete fint;
-	delete fVisTiming;
-
+/*
+        delete fparslogNorm;
+        delete fparsMPV;
+        delete fparsWidth;
+        delete fparsCte;
+        delete fparsSlope;
+        delete flandau;
+        delete fexpo;
+        delete fint;
+        delete fVisTiming;
+ */
 	return arrival_time_distrb;
 }
 
@@ -392,71 +392,71 @@ std::vector<double> utility::GetVisibleTimeFullConfig2(double t0, double tmean, 
 
 
 	// Defining the function for the different parameters:
-	TF1 *fparslogNorm1 = new TF1("fparslogNorm1",pols[0].c_str(),0,t0_max);
-	fparslogNorm1->SetParameters(landau1Norm);
-	TF1 *fparsMPV1 = new TF1("fparsMPV1",pols[1].c_str(),0,t0_max);
-	fparsMPV1->SetParameters(landau1MPV);
-	TF1 *fparsWidth1 = new TF1("fparsWidth1",pols[2].c_str(),0,t0_max);
-	fparsWidth1->SetParameters(landau1Width);
-	TF1 *fparslogNorm2 = new TF1("fparslogNorm2",pols[3].c_str(),0,t0_max);
-	fparslogNorm2->SetParameters(landau2Norm);
-	TF1 *fparsMPV2 = new TF1("fparsMPV2",pols[4].c_str(),0,t0_max);
-	fparsMPV2->SetParameters(landau2MPV);
-	TF1 *fparsWidth2 = new TF1("fparsWidth2",pols[5].c_str(),0,t0_max_mod);
-	fparsWidth2->SetParameters(landau2Width);
+	TF1 fparslogNorm1 ("fparslogNorm1",pols[0].c_str(),0,t0_max);
+	fparslogNorm1.SetParameters(landau1Norm);
+	TF1 fparsMPV1 ("fparsMPV1",pols[1].c_str(),0,t0_max);
+	fparsMPV1.SetParameters(landau1MPV);
+	TF1 fparsWidth1 ("fparsWidth1",pols[2].c_str(),0,t0_max);
+	fparsWidth1.SetParameters(landau1Width);
+	TF1 fparslogNorm2 ("fparslogNorm2",pols[3].c_str(),0,t0_max);
+	fparslogNorm2.SetParameters(landau2Norm);
+	TF1 fparsMPV2 ("fparsMPV2",pols[4].c_str(),0,t0_max);
+	fparsMPV2.SetParameters(landau2MPV);
+	TF1 fparsWidth2 ("fparsWidth2",pols[5].c_str(),0,t0_max_mod);
+	fparsWidth2.SetParameters(landau2Width);
 
 
 	//signals (remember this is transportation) no longer than 1us
 	const double signal_t_range = 1000.;
 
-	double pars_landau1[3] = {fparsMPV1->Eval(t0), fparsWidth1->Eval(t0), pow(10.,fparslogNorm1->Eval(t0))};
-	double pars_landau2[3] = {fparsMPV2->Eval(t0), fparsWidth2->Eval(t_direct), pow(10.,fparslogNorm2->Eval(t0))};
+	double pars_landau1[3] = {fparsMPV1.Eval(t0), fparsWidth1.Eval(t0), pow(10.,fparslogNorm1.Eval(t0))};
+	double pars_landau2[3] = {fparsMPV2.Eval(t0), fparsWidth2.Eval(t_direct), pow(10.,fparslogNorm2.Eval(t0))};
 	//To improve the degree of correlation in the estimation of Landau2-width,
 	//in the population2 this parameter is estimated as a function of t_vuv, insted of t0
 
 	if(t0 > t0_break_point) {
-		pars_landau1[1] = fparsWidth1->Eval(t0_break_point);
-		pars_landau1[2] = pow(10.,fparslogNorm1->Eval(t0_break_point));
-		pars_landau2[0] = fparsMPV2->Eval(t0_break_point);
-		pars_landau2[2] = pow(10.,fparslogNorm2->Eval(t0_break_point));
+		pars_landau1[1] = fparsWidth1.Eval(t0_break_point);
+		pars_landau1[2] = pow(10.,fparslogNorm1.Eval(t0_break_point));
+		pars_landau2[0] = fparsMPV2.Eval(t0_break_point);
+		pars_landau2[2] = pow(10.,fparslogNorm2.Eval(t0_break_point));
 	}
 
 	// Defining the two functions (Landau + Landau) describing the timing vs t0:
-	TF1 *flandau1 = new TF1("flandau1","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
-	flandau1->SetParameters(pars_landau1);
-	TF1 *flandau2 = new TF1("flandau2","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
-	flandau2->SetParameters(pars_landau2);
-	TF1 *fint = new TF1("fint",utility::finter_r,flandau1->GetMaximumX(),2*t0,6);
+	TF1 flandau1 ("flandau1","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
+	flandau1.SetParameters(pars_landau1);
+	TF1 flandau2 ("flandau2","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
+	flandau2.SetParameters(pars_landau2);
+	TF1 fint ("fint",utility::finter_r,flandau1.GetMaximumX(),2*t0,6);
 	double parsInt[6] = {pars_landau1[0], pars_landau1[1], pars_landau1[2], pars_landau2[0],
 		             pars_landau2[1], pars_landau2[2]};
-	fint->SetParameters(parsInt);
-	double t_int = fint->GetMinimumX();
-	double minVal = fint->Eval(t_int);
+	fint.SetParameters(parsInt);
+	double t_int = fint.GetMinimumX();
+	double minVal = fint.Eval(t_int);
 
-	TF1 *fVisibleTiming =  new TF1("fTiming",utility::LandauPlusLandauFinal,0,signal_t_range,7);
+	TF1 fVisibleTiming ("fTiming",utility::LandauPlusLandauFinal,0,signal_t_range,7);
 	double parsfinal[7] = {t_int, pars_landau1[0], pars_landau1[1], pars_landau1[2], pars_landau2[0],
 		               pars_landau2[1], pars_landau2[2]};
-	fVisibleTiming->SetParameters(parsfinal);
+	fVisibleTiming.SetParameters(parsfinal);
 	// Set the number of points used to sample the function
 
 	int f_sampling = 1500;
-	fVisibleTiming->SetNpx(f_sampling);
+	fVisibleTiming.SetNpx(f_sampling);
 	for(int i=0; i<number_photons; i++)
-		arrival_time_distrb.push_back(fVisibleTiming->GetRandom());
+		arrival_time_distrb.push_back(fVisibleTiming.GetRandom());
 
 	//deleting ...
-
-	delete fparslogNorm1;
-	delete fparsMPV1;
-	delete fparsWidth1;
-	delete fparslogNorm2;
-	delete fparsMPV2;
-	delete fparsWidth2;
-	delete flandau1;
-	delete flandau2;
-	delete fint;
-	delete fVisibleTiming;
-
+/*
+        delete fparslogNorm1;
+        delete fparsMPV1;
+        delete fparsWidth1;
+        delete fparslogNorm2;
+        delete fparsMPV2;
+        delete fparsWidth2;
+        delete flandau1;
+        delete flandau2;
+        delete fint;
+        delete fVisibleTiming;
+ */
 	return arrival_time_distrb;
 
 }
@@ -494,70 +494,70 @@ std::vector<double> utility::GetVisibleTimeFullConfig1(double t0, double tmean, 
 	}
 
 	// Defining the function for the different parameters:
-	TF1 *fparslogNorm1 = new TF1("fparslogNorm1",pols[0].c_str(),0,t0_max);
-	fparslogNorm1->SetParameters(landau1Norm);
-	TF1 *fparsMPV1 = new TF1("fparsMPV1",pols[1].c_str(),0,t0_max);
-	fparsMPV1->SetParameters(landau1MPV);
-	TF1 *fparsWidth1 = new TF1("fparsWidth1",pols[2].c_str(),0,t0_max);
-	fparsWidth1->SetParameters(landau1Width);
-	TF1 *fparslogNorm2 = new TF1("fparslogNorm2",pols[3].c_str(),0,t0_max);
-	fparslogNorm2->SetParameters(landau2Norm);
-	TF1 *fparsMPV2 = new TF1("fparsMPV2",pols[4].c_str(),0,t0_max);
-	fparsMPV2->SetParameters(landau2MPV);
-	TF1 *fparsWidth2 = new TF1("fparsWidth2",pols[5].c_str(),0,t0_max_mod);
-	fparsWidth2->SetParameters(landau2Width);
+	TF1 fparslogNorm1 ("fparslogNorm1",pols[0].c_str(),0,t0_max);
+	fparslogNorm1.SetParameters(landau1Norm);
+	TF1 fparsMPV1 ("fparsMPV1",pols[1].c_str(),0,t0_max);
+	fparsMPV1.SetParameters(landau1MPV);
+	TF1 fparsWidth1 ("fparsWidth1",pols[2].c_str(),0,t0_max);
+	fparsWidth1.SetParameters(landau1Width);
+	TF1 fparslogNorm2 ("fparslogNorm2",pols[3].c_str(),0,t0_max);
+	fparslogNorm2.SetParameters(landau2Norm);
+	TF1 fparsMPV2 ("fparsMPV2",pols[4].c_str(),0,t0_max);
+	fparsMPV2.SetParameters(landau2MPV);
+	TF1 fparsWidth2 ("fparsWidth2",pols[5].c_str(),0,t0_max_mod);
+	fparsWidth2.SetParameters(landau2Width);
 
 
 	//signals (remember this is transportation) no longer than 1us
 	const double signal_t_range = 1000.;
 
-	double pars_landau1[3] = {fparsMPV1->Eval(t0), fparsWidth1->Eval(t0), pow(10.,fparslogNorm1->Eval(t0))};
-	double pars_landau2[3] = {fparsMPV2->Eval(t0), fparsWidth2->Eval(t0), pow(10.,fparslogNorm2->Eval(t0))};
+	double pars_landau1[3] = {fparsMPV1.Eval(t0), fparsWidth1.Eval(t0), pow(10.,fparslogNorm1.Eval(t0))};
+	double pars_landau2[3] = {fparsMPV2.Eval(t0), fparsWidth2.Eval(t0), pow(10.,fparslogNorm2.Eval(t0))};
 	//To improve the degree of correlation in the estimation of Landau2-width,
 	//in the population2 this parameter is estimated as a function of t_vuv, insted of t0
 	//prevent "bad" behaviour (below 6 ns) of the pol parametrizing this parameter (lack in stats):
 	if(t0 < 6)
-		pars_landau2[0] = fparsMPV2->Eval(6.);
+		pars_landau2[0] = fparsMPV2.Eval(6.);
 
 	// Defining the two functions (Landau + Landau) describing the timing vs t0:
-	TF1 *flandau1 = new TF1("flandau1","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
-	flandau1->SetParameters(pars_landau1);
-	TF1 *flandau2 = new TF1("flandau2","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
-	flandau2->SetParameters(pars_landau2);
-	TF1 *fint = new TF1("fint",utility::finter_r,flandau1->GetMaximumX(),2*t0,6);
+	TF1 flandau1 ("flandau1","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
+	flandau1.SetParameters(pars_landau1);
+	TF1 flandau2 ("flandau2","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
+	flandau2.SetParameters(pars_landau2);
+	TF1 fint ("fint",utility::finter_r,flandau1.GetMaximumX(),2*t0,6);
 	double parsInt[6] = {pars_landau1[0], pars_landau1[1], pars_landau1[2], pars_landau2[0],
 		             pars_landau2[1], pars_landau2[2]};
-	fint->SetParameters(parsInt);
-	double t_int = fint->GetMinimumX();
-	double minVal = fint->Eval(t_int);
+	fint.SetParameters(parsInt);
+	double t_int = fint.GetMinimumX();
+	double minVal = fint.Eval(t_int);
 	//the functions must intersect!!!
 	//if(minVal>0.015)
 	//std::cout<<"WARNING: Parametrization of Reflected Light discontinuous (landau + landau)!!!!!!"<<std::endl;
 
-	TF1 *fVisibleTiming =  new TF1("fTiming",utility::LandauPlusLandauFinal,0,signal_t_range,7);
+	TF1 fVisibleTiming ("fTiming",utility::LandauPlusLandauFinal,0,signal_t_range,7);
 	double parsfinal[7] = {t_int, pars_landau1[0], pars_landau1[1], pars_landau1[2], pars_landau2[0],
 		               pars_landau2[1], pars_landau2[2]};
-	fVisibleTiming->SetParameters(parsfinal);
+	fVisibleTiming.SetParameters(parsfinal);
 	// Set the number of points used to sample the function
 
 	int f_sampling = 1500;
-	fVisibleTiming->SetNpx(f_sampling);
+	fVisibleTiming.SetNpx(f_sampling);
 	for(int i=0; i<number_photons; i++)
-		arrival_time_distrb.push_back(fVisibleTiming->GetRandom());
+		arrival_time_distrb.push_back(fVisibleTiming.GetRandom());
 
 	//deleting ...
-
-	delete fparslogNorm1;
-	delete fparsMPV1;
-	delete fparsWidth1;
-	delete fparslogNorm2;
-	delete fparsMPV2;
-	delete fparsWidth2;
-	delete flandau1;
-	delete flandau2;
-	delete fint;
-	delete fVisibleTiming;
-
+/*
+        delete fparslogNorm1;
+        delete fparsMPV1;
+        delete fparsWidth1;
+        delete fparslogNorm2;
+        delete fparsMPV2;
+        delete fparsWidth2;
+        delete flandau1;
+        delete flandau2;
+        delete fint;
+        delete fVisibleTiming;
+ */
 	return arrival_time_distrb;
 }
 

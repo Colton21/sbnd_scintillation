@@ -185,11 +185,11 @@ std::vector<double> LibraryAccess::PhotonLibraryAnalyzer(double _energy, const i
 
 	for(int i = 0; i < int_hits_vuv; i++)
 	{
-		if(gRandom->Uniform() <= quantum_efficiency){total_hits_vuv++;}
+		if(gRandom->Uniform(1.) <= quantum_efficiency){total_hits_vuv++;}
 	}
 	for(int j = 0; j < int_hits_vis; j++)
 	{
-		if(gRandom->Uniform() <= quantum_efficiency){total_hits_vis++;}
+		if(gRandom->Uniform(1.) <= quantum_efficiency){total_hits_vis++;}
 	}
 
   //Push information back into a vector to readout in:
