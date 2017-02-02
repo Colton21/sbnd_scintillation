@@ -21,16 +21,16 @@ int main()
 	if(config == 1) {cout << "Cath Foils" << endl; }
 	if(config == 2) {cout << "VUV only" << endl; }
 
-  if (config == 0 || config ==1)
-  {
-    reflected = true;
-    reflT = true;
-  }
-  if (config ==2)
-  {
-    reflected = false;
-    reflT = false;
-  }
+	if (config == 0 || config ==1)
+	{
+		reflected = true;
+		reflT = true;
+	}
+	if (config ==2)
+	{
+		reflected = false;
+		reflT = false;
+	}
 
 	gRandom->SetSeed(0);
 
@@ -41,12 +41,30 @@ int main()
 	TF1 *fScintillation_function = new TF1("Ar Scintillation Timing", utility::Scintillation_function, 0, scint_time_window, 2);
 	fScintillation_function->SetParameter(0, t_singlet);
 	fScintillation_function->SetParameter(1, t_triplet);
+/*
+        TCanvas *function1 = new TCanvas();
+        function1->cd();
+        fSpectrum->Draw();
+        TCanvas *function2 = new TCanvas();
+        function2->cd();
+        flandau_sn->SetNormalized(1);
+        flandau_sn->Draw();
+        TCanvas* function3 = new TCanvas();
+        function3->cd();
+        gPad->SetLogy();
+        fScintillation_function->SetNormalized(1);
+        fScintillation_function->SetRange(0, 0.000001);
+        fScintillation_function->Draw();
 
+        function1->Print("ar39_spectrum.pdf");
+        function2->Print("sn_spectrum.pdf");
+        function3->Print("ar_scintillation_time.pdf");
+ */
 
 	//*********** loading the library ****************
-	if(config == 0) {libraryfile = "Lib154PMTs8inch_FullFoilsTPB.root"; }
-  if(config == 1) {libraryfile = "Lib154PMTs8inch_OnlyCathodeTPB.root"; }
-	if(config == 2) {libraryfile = "Lib154PMTs8inch_NoCathodeNoFoils.root"; }
+	if(config == 0) {libraryfile = "../Lib154PMTs8inch_FullFoilsTPB.root"; }
+	if(config == 1) {libraryfile = "../Lib154PMTs8inch_OnlyCathodeTPB.root"; }
+	if(config == 2) {libraryfile = "../Lib154PMTs8inch_NoCathodeNoFoils.root"; }
 	lar_light.LoadLibraryFromFile(libraryfile, reflected, reflT);
 
 	// Reading out positions of PMTs from txt file *****
@@ -65,19 +83,19 @@ int main()
 	}
 	myfile.close();
 	// End Reading out positions of PMT from txt file
-  //note: the text file simply has a list of the PMT positions, and they are
-  //simply being filled into a vector.
+	//note: the text file simply has a list of the PMT positions, and they are
+	//simply being filled into a vector.
 
 
-  //data_tree preceeded event_tree and was designed such that each photoelectron
-  //would have their own entry in the ttree with a time, which pmt, xyz, and
-  //event number (data_event).
-  //A current issue with the event number tracking is that it does not carry
-  //over between several iterations of the code. For single uses this is fine,
-  //but memory consuption and speed for running this code a single time
-  //becomes a limiting factor, such that running many instances of this code
-  //in parallel becomes much more useful. Therefore carrying over the event
-  //number between iterations may be useful.
+	//data_tree preceeded event_tree and was designed such that each photoelectron
+	//would have their own entry in the ttree with a time, which pmt, xyz, and
+	//event number (data_event).
+	//A current issue with the event number tracking is that it does not carry
+	//over between several iterations of the code. For single uses this is fine,
+	//but memory consuption and speed for running this code a single time
+	//becomes a limiting factor, such that running many instances of this code
+	//in parallel becomes much more useful. Therefore carrying over the event
+	//number between iterations may be useful.
 	data_tree->Branch("data_time", &data_time, "data_time/D");
 	data_tree->Branch("data_pmt", &data_pmt, "data_pmt/I");
 	data_tree->Branch("data_x_pos", &data_x_pos, "data_x_pos/D");
@@ -86,10 +104,10 @@ int main()
 
 	data_tree->Branch("data_event", &data_event, "data_event/I");
 
-  //event_tree is designed to save one entry for every event (ar39 decay).
-  //hopefully by matching event numbers across ar39 decay and several photoelectrons
-  //the energy of the event, how many photoelectrons were detected, and its
-  //detector location can be compared.
+	//event_tree is designed to save one entry for every event (ar39 decay).
+	//hopefully by matching event numbers across ar39 decay and several photoelectrons
+	//the energy of the event, how many photoelectrons were detected, and its
+	//detector location can be compared.
 	event_tree->Branch("event_no", &event_no, "event_no/I");
 	event_tree->Branch("event_vox", &event_vox, "event_vox/I");
 	event_tree->Branch("event_x_pos", &event_x_pos, "event_x_pos/D");
@@ -108,19 +126,22 @@ int main()
 		for(int events = 0; events < max_events; events++)
 		{
 			energy_ar_list.push_back(fSpectrum->GetRandom());
+			//energy_ar_list.push_back(0.565);
 			double decay_time = time_window * gRandom->Uniform(1.);
 			scint_time_list.push_back(decay_time);
+			//scint_time_list.push_back(0);
 			int rand_voxel = gRandom->Uniform(319999);
 			voxel_list.push_back(rand_voxel);//select random voxel -> random position in detector
+			//voxel_list.push_back(161660);
 
-      //The goal with simulating the ar39 is to be close to the physical system
-      //this means randomly creating many of its characteristics.
-      //However, for looking specifically at the detector response in certain
-      //areas, using a predefined set of energy and voxel can be useful.
-      //Some preselected voxels are:
-            // 161660 : (105, 7.5, 252.5)
-						// 166575 (80, -177.5, 262.5)
-						// 240393 (170, -152.5, 377.5)
+			//The goal with simulating the ar39 is to be close to the physical system
+			//this means randomly creating many of its characteristics.
+			//However, for looking specifically at the detector response in certain
+			//areas, using a predefined set of energy and voxel can be useful.
+			//Some preselected voxels are:
+			// 161660 : (105, 7.5, 252.5)
+			// 166575 (80, -177.5, 262.5)
+			// 240393 (170, -152.5, 377.5)
 
 			double position[3];
 			lar_light.GetVoxelCoords(rand_voxel, position);
@@ -134,12 +155,12 @@ int main()
 
 		}
 
-    //Begin looping over the PMT array. SBND plans to implement 60 PMTs,
-    //with the list of numbers in the .h file (realisticPMT_IDs).
+		//Begin looping over the PMT array. SBND plans to implement 60 PMTs,
+		//with the list of numbers in the .h file (realisticPMT_IDs).
 		for(int pmt_loop = 0; pmt_loop < 60; pmt_loop++) {
 			int num_pmt = realisticPMT_IDs[pmt_loop];
 
-      //By printing the PMT number here I can track the progress of the generation.
+			//By printing the PMT number here I can track the progress of the generation.
 			cout << "PMT: " << num_pmt << endl;
 
 			double x_pmt = myfile_data.at(num_pmt).at(1);
@@ -148,14 +169,14 @@ int main()
 
 			TVector3 optdet (x_pmt/100., y_pmt/100., z_pmt/100.);
 
-      //Loop over all events for each PMT
+			//Loop over all events for each PMT
 			for(int events = 0; events < max_events; events++) {
-        //Funciton defined in library_access.cc
+				//Funciton defined in library_access.cc
 				vector<double> pmt_hits = lar_light.PhotonLibraryAnalyzer(energy_ar_list.at(events), scint_yield, quantum_efficiency, num_pmt, voxel_list.at(events));
 				int num_VUV = pmt_hits.at(0);
 				int num_VIS = pmt_hits.at(1);
 
-        //If no photoelectrons from this event for this PMT, go to the next event.
+				//If no photoelectrons from this event for this PMT, go to the next event.
 				if(num_VUV+num_VIS == 0) {continue; }
 
 				double distance_to_pmt =
@@ -175,8 +196,8 @@ int main()
 				vector<double> time_vuv;
 				if(num_VUV != 0) { time_vuv = utility::GetVUVTime(distance_to_pmt, num_VUV); }
 
-        //This statement is to prvent issues when the parameterisation is not
-        //well defined.
+				//This statement is to prvent issues when the parameterisation is not
+				//well defined.
 				if(num_VUV != time_vuv.size())
 				{
 					cout << "Param fail" << endl;
@@ -185,10 +206,10 @@ int main()
 
 				for(auto& x: time_vuv)
 				{
-          //data_time has several parts:
-          // x is the output from the parameterisation, and it's converted to microseconds
-          // the scintillation function timing is also converted to microseconds
-          // the time window offset is when the decay occured, given already in microseconds
+					//data_time has several parts:
+					// x is the output from the parameterisation, and it's converted to microseconds
+					// the scintillation function timing is also converted to microseconds
+					// the time window offset is when the decay occured, given already in microseconds
 					data_time = (x*0.001+(scint_time_list.at(events) + fScintillation_function->GetRandom())*1000000.);
 					data_pmt = num_pmt;
 					data_tree->Fill();
@@ -196,9 +217,9 @@ int main()
 
 				time_vuv.clear();
 
-        //As seen in utility functions, the parameterisation for the case where
-        //we have foils on the cathode and the case where we have foils on the
-        //the whole TPC (not behind the PMTs), are different...
+				//As seen in utility functions, the parameterisation for the case where
+				//we have foils on the cathode and the case where we have foils on the
+				//the whole TPC (not behind the PMTs), are different...
 
 				//This is for foils only on cathode
 				vector<double> time_vis;
@@ -214,7 +235,7 @@ int main()
 					time_vis.clear();
 				}
 
-        /// For full foil configuration only
+				/// For full foil configuration only
 				/// This function expects distances in m
 				if(num_VIS != 0 && config == 0)
 				{
@@ -247,11 +268,11 @@ int main()
 		data_tree->Fill();
 	}//end if gen_argon
 
-  /* Ion generation is another topic: this code was writen based on some
-  tests for ions recombining on the cathode and scintillating. The numbers
-  provided here are from a separate simulation which makes many assumptions!
-  I would recommend in general not using this setting.
-  */
+	/* Ion generation is another topic: this code was writen based on some
+	   tests for ions recombining on the cathode and scintillating. The numbers
+	   provided here are from a separate simulation which makes many assumptions!
+	   I would recommend in general not using this setting.
+	 */
 
 	if(config == 0 && gen_ions == true)
 	{
@@ -302,7 +323,7 @@ int main()
 	scint_time_list.clear();
 	voxel_list.clear();
 
-  //Left-over plotting code to make a simple histogram to show the timing.
+	//Left-over plotting code to make a simple histogram to show the timing.
 /*
    TCanvas *can_time2 = new TCanvas();
    can_time2->cd();
@@ -319,15 +340,18 @@ int main()
 	if(supernova == true)
 	{
 
-    //I want to treat each supernova event individually, as we expect few
-    //events (~10) on a time-scale much larger than the longest scintillation
-    //timing (~8 us or so), and likely won't overlap at all.
+		//I want to treat each supernova event individually, as we expect few
+		//events (~10) on a time-scale much larger than the longest scintillation
+		//timing (~8 us or so), and likely won't overlap at all.
 		for(int events_sn = 0; events_sn < max_events_sn; events_sn++)
 		{
 			double scint_time_list = time_window * gRandom->Uniform(1.);
+			//double scint_time_list = 0;
 			vector<double> pmt_hits_sn;
 			double energy_sn = flandau_sn->GetRandom();
 			int rand_voxel = gRandom->Uniform(319999);//select random voxel -> random position in detector
+			//int rand_voxel = 161660;
+			//double energy_sn = 20;
 
 			//Loop over all the PMTs
 			for(int loop_pmt = 0; loop_pmt < 60; loop_pmt++)
