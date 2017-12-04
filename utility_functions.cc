@@ -61,18 +61,47 @@ double utility::fsn(double *x, double *par)
 
 }
 
+//Radon-222 decay energy spectrum (Gaussian about the alpha decay energy)
+
+double utility::Rn_function(double *x, double *par)
+{
+
+	double E = *x;
+	double Q_Rn = par[0];
+
+	double sigma = 0.01;
+	//double sigma = (E - Q_Rn) / std::sqrt(1.3863); // 1,3863 = ln(4)
+	double sigma_sq = sigma * sigma;
+
+	double gauss = 1/(sigma * std::sqrt(2*3.1416)) * std::exp((-1*std::pow((E-Q_Rn),2))/(2*sigma_sq));
+
+	return gauss;
+
+}
+
+
 //Scintillation decay function
 double utility::Scintillation_function(double *t, double *par){
 
 	double time = *t;
 	double t_singlet = par[0];
 	double t_triplet = par[1];
-	double singlet_part = 0.25;
-	double triplet_part = 0.75;
+	double type = par[2]; // type will be defined at 0 or 1, 0 is an electron, 1 is an alpha particle
+	double singlet_part;
+	double triplet_part;
 
-//	double Scintillation = exp(-(time/t_singlet))*singlet_part/t_singlet + exp(-(time/t_triplet))*triplet_part/t_triplet;
+	if(type == 0){ // particle is an electron
+	  singlet_part = 0.25;
+	  triplet_part = 0.75;
+	}
+
+	if(type == 1){ // particle is an alpha
+	  singlet_part = 0.75;
+	  triplet_part = 0.25;
+	}
+
+
 	double Scintillation = exp(-(time/t_singlet))*singlet_part/t_singlet + exp(-(time/t_triplet))*triplet_part/t_triplet;
-
 
 	return Scintillation;
 
@@ -147,14 +176,14 @@ std::vector<double> utility::GetVUVTime(double distance, int number_photons) {
 	arrival_time_distrb.clear();
 	arrival_time_distrb.reserve(number_photons);
 	// Parametrization data:
-	const double landauNormpars[8] = {7.85903, -0.108075, 0.00110999, -6.90009e-06,
-		                          2.52576e-08, -5.39078e-11, 6.20863e-14, -2.97559e-17};
-	const double landauMPVpars[5] = {1.20259, 0.0582674, 0.000308053, -2.71782e-07, -3.37159e-10};
-	const double landauWidthpars[4] = {0.346667, -0.00768231, 0.000211825, -3.81361e-07};
-	const double expoCtepars[7] = {13.6592, -0.188798, 0.00192431, -1.10689e-05, 3.38425e-08,
-		                       -5.20737e-11, 3.17657e-14};
-	const double expoSlopepars[8] = {-0.57011, 0.0156393, -0.000197461, 1.34491e-06, -5.24544e-09,
-		                         1.1703e-11, -1.38811e-14, 6.78368e-18};
+	double landauNormpars[8] = {7.85903, -0.108075, 0.00110999, -6.90009e-06,
+		                    2.52576e-08, -5.39078e-11, 6.20863e-14, -2.97559e-17};
+	double landauMPVpars[5] = {1.20259, 0.0582674, 0.000308053, -2.71782e-07, -3.37159e-10};
+	double landauWidthpars[4] = {0.346667, -0.00768231, 0.000211825, -3.81361e-07};
+	double expoCtepars[7] = {13.6592, -0.188798, 0.00192431, -1.10689e-05, 3.38425e-08,
+		                 -5.20737e-11, 3.17657e-14};
+	double expoSlopepars[8] = {-0.57011, 0.0156393, -0.000197461, 1.34491e-06, -5.24544e-09,
+		                   1.1703e-11, -1.38811e-14, 6.78368e-18};
 	//range of distances where the parametrization is valid [~10 - 500cm], then:
 	const double d_break = 500.;
 	const double d_max = 750.;
@@ -171,19 +200,14 @@ std::vector<double> utility::GetVUVTime(double distance, int number_photons) {
 	fparsSlope.SetParameters(expoSlopepars);
 	// At long distances we extrapolate the behaviour of the parameters:
 	TF1 fparslogNorm_far ("fparslogNorm_far","expo",d_break, d_max);
-	const double landauNormpars_far[2] = {2.23151, -0.00627503};
+	double landauNormpars_far[2] = {2.23151, -0.00627503};
 	fparslogNorm_far.SetParameters(landauNormpars_far);
 	TF1 fparsMPV_far ("fparsMPV_far","pol1",d_break, d_max);
-	const double landauMPVpars_far[2] = {-3.04952, 0.128638};
+	double landauMPVpars_far[2] = {-3.04952, 0.128638};
 	fparsMPV_far.SetParameters(landauMPVpars_far);
 	TF1 fparsCte_far ("fparsCte_far","expo",d_break-50., d_max);
-	const double expoCtepars_far[2] = {3.69578, -0.00989582};
+	double expoCtepars_far[2] = {3.69578, -0.00989582};
 	fparsCte_far.SetParameters(expoCtepars_far);
-
-	/********************************************
-	   Is this bad practice? I feel like it is...
-	   Basically the vector is simply being reutnred empty
-	 */
 
 	if(distance < 10 || distance > d_max) {
 		//std::cout<<"WARNING: Parametrization of Direct Light not fully reliable"<<std::endl;
@@ -196,19 +220,12 @@ std::vector<double> utility::GetVUVTime(double distance, int number_photons) {
 	double t_direct = distance/vuv_vgroup;
 
 	// Defining the two functions (Landau + Exponential) describing the timing vs distance
-	double pars_landau[3];
-
-	if(distance > d_break)
-	{
+	double pars_landau[3]= {fparsMPV.Eval(distance), fparsWidth.Eval(distance),
+		                pow(10.,fparslogNorm.Eval(distance))};
+	if(distance > d_break) {
 		pars_landau[0]=fparsMPV_far.Eval(distance);
 		pars_landau[1]=fparsWidth.Eval(d_break);
 		pars_landau[2]=pow(10.,fparslogNorm_far.Eval(distance));
-	}
-	else
-	{
-		pars_landau[0] = fparsMPV.Eval(distance);
-		pars_landau[1] = fparsWidth.Eval(distance);
-		pars_landau[2] = pow(10.,fparslogNorm.Eval(distance));
 	}
 	TF1 flandau ("flandau","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
 	flandau.SetParameters(pars_landau);

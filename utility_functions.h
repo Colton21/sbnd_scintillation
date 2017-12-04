@@ -14,6 +14,7 @@
     int poisson(double mean, double draw, double eng);
     double SpectrumFunction(double *x, double *par);
     double fsn(double *x, double *par);
+    double Rn_function(double *x, double *par);
     double Scintillation_function(double *t, double *par);
     std::vector<double> GetVUVTime(double distance, int number_photons);
     std::vector<double> GetVisibleTimeOnlyCathode(double t0, int number_photons);

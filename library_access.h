@@ -17,6 +17,7 @@ class LibraryAccess{
     const float* GetCounts(size_t Voxel, int no_pmt);
     const float* GetLibraryEntries(int VoxID, bool wantReflected, int no_pmt);
     std::vector<int> GetVoxelCoords(int id, double position[3]);
+    int GetVoxelID(double* Position);
     std::vector<double> PhotonLibraryAnalyzer(double _energy, const int _scint_yield, const double _quantum_efficiency, int _pmt_number, int _rand_voxel);
 
     LibraryAccess();
